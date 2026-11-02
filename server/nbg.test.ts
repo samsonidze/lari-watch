@@ -144,3 +144,11 @@ describe("handleHistory", () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe("tbilisiDate", () => {
+  it("rolls over at midnight in Georgia, not UTC", async () => {
+    const { tbilisiDate } = await import("./nbg");
+    expect(tbilisiDate(new Date("2026-11-02T19:59:00Z"))).toBe("2026-11-02"); // 23:59 in Tbilisi
+    expect(tbilisiDate(new Date("2026-11-02T20:00:00Z"))).toBe("2026-11-03"); // 00:00 in Tbilisi
+  });
+});

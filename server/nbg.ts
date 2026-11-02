@@ -54,6 +54,13 @@ export function toIsoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+const TBILISI = "Asia/Tbilisi";
+
+/** The calendar date in Georgia for a given instant — NBG publishes against Tbilisi time. */
+export function tbilisiDate(instant: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TBILISI, year: "numeric", month: "2-digit", day: "2-digit" }).format(instant);
+}
+
 /** Business days (Mon–Fri) ending at `end`, going back `days` calendar days. */
 export function businessDays(end: Date, days: number): string[] {
   const out: string[] = [];

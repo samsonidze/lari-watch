@@ -10,7 +10,7 @@ import {
   isIsoDate,
   isLang,
   NbgError,
-  toIsoDate,
+  tbilisiDate,
   type FetchLike,
 } from "./nbg";
 
@@ -45,17 +45,18 @@ export async function handleRates(
   deps: { fetchImpl?: FetchLike; now?: () => Date } = {},
 ): Promise<HandlerResult> {
   const now = deps.now ?? (() => new Date());
-  const date = query.date ?? toIsoDate(now());
+  const today = tbilisiDate(now());
+  const date = query.date ?? today;
   const lang = query.lang ?? "en";
 
   if (!isIsoDate(date)) return errorResult(400, "date must be YYYY-MM-DD");
   if (!isLang(lang)) return errorResult(400, "lang must be en or ka");
-  if (date > toIsoDate(now())) return errorResult(400, "date is in the future");
+  if (date > today) return errorResult(400, "date is in the future");
 
   try {
     const day = await fetchDay(date, lang, deps.fetchImpl);
     // Past days never change; today's may be re-published, so cache it briefly.
-    const isToday = date === toIsoDate(now());
+    const isToday = date === today;
     const cache = isToday
       ? "public, s-maxage=1800, stale-while-revalidate=3600"
       : "public, s-maxage=86400, stale-while-revalidate=604800";
@@ -75,7 +76,7 @@ export async function handleHistory(
   if (!isHistoryRange(days)) return errorResult(400, `days must be one of ${HISTORY_RANGES.join(", ")}`);
 
   try {
-    const payload = await fetchHistory(businessDays(now(), days), deps.fetchImpl);
+    const payload = await fetchHistory(businessDays(new Date(`${tbilisiDate(now())}T00:00:00Z`), days), deps.fetchImpl);
     if (payload.dates.length === 0) return errorResult(502, "No data from NBG");
     return {
       status: 200,
