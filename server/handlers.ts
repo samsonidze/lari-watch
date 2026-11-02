@@ -1,8 +1,5 @@
-/**
- * Framework-agnostic request handlers. `api/*.ts` adapts them for Vercel
- * functions and `server/vite-plugin.ts` serves the same code in `vite dev`,
- * so there is exactly one implementation of the proxy.
- */
+// The actual /api handlers. api/*.ts wraps them for Vercel, server/vite-plugin.ts
+// mounts them in dev.
 import {
   businessDays,
   fetchDay,

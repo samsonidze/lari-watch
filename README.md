@@ -1,66 +1,42 @@
-# Lari Watch
+# lari-watch
 
-Official lari (GEL) exchange rates from the National Bank of Georgia: today's rate for every currency, how it moved over the last month, quarter or year, and a converter. English and Georgian.
+Lari exchange rates from the National Bank of Georgia, with history and a converter. English and Georgian.
+
+Live: https://lari-watch.vercel.app
 
 [![CI](https://github.com/samsonidze/lari-watch/actions/workflows/ci.yml/badge.svg)](https://github.com/samsonidze/lari-watch/actions/workflows/ci.yml)
 
-**Live:** https://lari-watch.vercel.app
+![screenshot](docs/screenshot.png)
 
-![Lari Watch showing the euro at 3.1234 GEL with a 30-day chart, a converter, the week's biggest moves and the full rates list](docs/screenshot.png)
+I kept opening nbg.gov.ge to check the dollar and euro, and the official page is a plain table for one day with no chart. This is the version I wanted: today's rate for every currency, how it moved over the last month/quarter/year, and a quick converter. Rates shown per 1 unit even where the bank quotes per 100 or 1000 (JPY, KRW, UZS...).
 
-## What it does
+Pick a date to see rates for any past day. `?cur=EUR&date=2026-03-01` links straight to it.
 
-- **Every NBG currency, today or any past date.** Rates are shown per one unit even where the bank quotes per 100 or 1000 (JPY, KRW, UZS…), with the original quote alongside.
-- **History for 30 days, 90 days or a year** with low, high, average and the change over the period.
-- **Day-on-day change** from the bank's published difference.
-- **Biggest moves this week** — the currencies the lari weakened and strengthened against most over the last five business days.
-- **Converter** in both directions for the selected currency.
-- **Shareable views:** `?cur=EUR&date=2026-03-01` is a link to that currency on that day.
-- Georgian and English (the bank supplies localised currency names), light and dark, keyboard-navigable, no animation.
+## Stack
 
-## How it's built
+React 18, TypeScript, Vite, Tailwind 4, TanStack Query, Recharts. Vitest for tests. Two small Vercel functions for the API.
 
-React 18 · TypeScript · Vite · Tailwind CSS 4 · TanStack Query · Recharts · Vitest · Vercel Functions
+## The API part
+
+NBG's endpoint returns one day per request and has no history call. A one-year chart means ~260 requests (business days only), which I didn't want every visitor's browser doing against a government API. So:
+
+- `api/history` fans the requests out with a concurrency limit, lines every currency up on one date axis (missing days stay missing, no interpolation) and gets cached at Vercel's edge for 6 hours.
+- `api/rates` just proxies one day. Today is cached for 30 min, past days for a day, since they never change.
+
+Both handlers live in `server/` as plain functions with an injectable `fetch`. `api/*.ts` are thin Vercel adapters, and a tiny Vite plugin mounts the same handlers in `npm run dev`, so there's one implementation and no `vercel dev` needed.
+
+"Today" on the server is the date in Tbilisi, not UTC. The bank publishes against local time and late in the evening those differ.
+
+## Running it
 
 ```
-api/            Vercel function entry points (thin adapters)
-server/
-  nbg.ts        NBG client: URL building, validation, business-day calendar, history fan-out
-  handlers.ts   /api/rates and /api/history as plain functions (no framework types)
-  vite-plugin   Mounts the same handlers in `vite dev`, so dev and prod run one implementation
-src/
-  api/          fetch wrappers + TanStack Query hooks
-  lib/          formatting (Intl), stats, i18n strings, currency ordering
-  components/   Header, RatesList, CurrencyDetail, RateChart (lazy), Converter, Movers
-```
-
-### Why there's a server at all
-
-The NBG endpoint returns one calendar day per request. A one-year chart therefore needs ~260 requests (business days only), which is too much to do from each visitor's browser and would hammer the bank's API. `/api/history` fans those requests out with a concurrency limit, aligns every currency onto one date axis (gaps stay gaps, they're not interpolated), and the result is cached at Vercel's edge for six hours. `/api/rates` is a plain proxy with a short cache for today and a long one for past days, which never change.
-
-"Today" on the server is the date in Tbilisi, not UTC — the bank publishes against local time, and a request made late in the evening from a browser (or a function running in another region) would otherwise ask for the wrong day.
-
-### Tests
-
-`npm test` covers the parts that are easy to get subtly wrong: date validation, the business-day calendar, the concurrency limiter, series alignment with missing days, cache headers, the Tbilisi midnight rollover, and the percentage maths. The handlers take an injectable `fetch`, so the tests run against a fake bank without network access.
-
-## Run it
-
-```bash
 npm install
-npm run dev        # http://localhost:5173 — /api/* served by the Vite plugin
+npm run dev     # localhost:5173, /api/* served by the vite plugin
 npm test
-npm run build
 ```
 
-Deploying to Vercel needs no configuration and no environment variables; the `api/` folder becomes two serverless functions.
+Deploys to Vercel with no settings and no env vars.
 
 ## Data
 
-[National Bank of Georgia — official exchange rates](https://nbg.gov.ge/en/monetary-policy/currency). Rates are set each business day and come into force the following day. The bank's API is public and keyless; this project caches it and does not redistribute it beyond what the page shows.
-
-## Ideas for later
-
-- Cross rates (EUR→USD via GEL) and a multi-currency compare chart
-- A `Range` of "since 1 Jan" and "since a date I pick"
-- Notifications when a currency crosses a threshold
+[nbg.gov.ge](https://nbg.gov.ge/en/monetary-policy/currency). Rates are set each business day and come into force the next day.

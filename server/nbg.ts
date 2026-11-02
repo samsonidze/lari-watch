@@ -1,16 +1,10 @@
-/**
- * Thin client for the National Bank of Georgia public rates endpoint.
- *
- * The endpoint returns, for a given calendar date, every currency's official
- * rate against GEL. Rates are published on business days; a weekend or holiday
- * date returns the last published rate with `validFromDate` set accordingly.
- */
+// Client for the NBG rates endpoint. One request = one calendar day, every currency.
+// Weekends/holidays return the last published rate (see validFromDate).
 
 export const NBG_BASE = "https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies";
 
 export type Lang = "en" | "ka";
 
-/** One currency as the NBG API returns it. */
 export interface NbgCurrency {
   code: string;
   /** Rate is quoted per this many units (e.g. 100 JPY, 1000 KRW). */
@@ -132,7 +126,7 @@ export async function fetchDay(
   }
 }
 
-/** Run `tasks` with at most `limit` in flight. Rejections are returned, not thrown. */
+// Promise.allSettled with a concurrency cap.
 export async function mapLimit<T, R>(
   items: T[],
   limit: number,
@@ -194,7 +188,7 @@ export async function fetchHistory(
   return { dates: okDates, series, missing };
 }
 
-/** Normalise an NBG quote to GEL per one unit of the currency. */
+// NBG quotes some currencies per 100 or 1000 units.
 export function perUnit(c: Pick<NbgCurrency, "rate" | "quantity">): number {
   return c.quantity > 0 ? c.rate / c.quantity : c.rate;
 }

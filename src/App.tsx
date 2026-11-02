@@ -90,9 +90,9 @@ export default function App() {
           </a>
         </p>
         <p className="mt-1">
-          {s.builtBy}{" "}
+          Giorgi Samsonidze ·{" "}
           <a href="https://github.com/samsonidze/lari-watch" className="underline underline-offset-2 hover:text-ink">
-            Giorgi Samsonidze
+            source
           </a>
         </p>
       </footer>
