@@ -74,12 +74,20 @@ export function businessDays(end: Date, days: number): string[] {
 }
 
 export interface FetchLike {
-  (input: string, init?: { signal?: AbortSignal }): Promise<{
+  (input: string, init?: { signal?: AbortSignal; headers?: Record<string, string> }): Promise<{
     ok: boolean;
     status: number;
-    json(): Promise<unknown>;
+    text(): Promise<string>;
   }>;
 }
+
+// nbg.gov.ge sits behind a WAF that answers some bare requests with an HTML
+// page instead of JSON, so look like a normal client and say what we accept.
+const NBG_HEADERS = {
+  Accept: "application/json, text/plain, */*",
+  "Accept-Language": "en",
+  "User-Agent": "Mozilla/5.0 (compatible; lari-watch/0.1; +https://github.com/samsonidze/lari-watch)",
+};
 
 export class NbgError extends Error {
   constructor(
@@ -108,9 +116,15 @@ export async function fetchDay(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetchImpl(ratesUrl(date, lang), { signal: controller.signal });
-    if (!res.ok) throw new NbgError(`NBG responded ${res.status}`, 502);
-    const body = await res.json();
+    const res = await fetchImpl(ratesUrl(date, lang), { signal: controller.signal, headers: NBG_HEADERS });
+    const text = await res.text();
+    if (!res.ok) throw new NbgError(`NBG responded ${res.status}: ${text.slice(0, 120)}`, 502);
+    let body: unknown;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      throw new NbgError(`NBG sent non-JSON: ${text.slice(0, 120)}`, 502);
+    }
     assertNbgResponse(body);
     return body[0]!;
   } finally {

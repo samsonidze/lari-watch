@@ -34,9 +34,11 @@ function errorResult(status: number, message: string): HandlerResult {
 }
 
 function fromUnknownError(err: unknown): HandlerResult {
+  console.error("[nbg]", err);
   if (err instanceof NbgError) return errorResult(err.status, err.message);
   if (err instanceof Error && err.name === "AbortError") return errorResult(504, "NBG timed out");
-  return errorResult(502, "Upstream request failed");
+  const detail = err instanceof Error ? err.message : String(err);
+  return errorResult(502, `Upstream request failed: ${detail}`);
 }
 
 /** GET /api/rates?date=YYYY-MM-DD&lang=en|ka — rates for one day (default: today). */

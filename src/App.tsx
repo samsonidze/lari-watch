@@ -50,12 +50,15 @@ export default function App() {
         {rates.isPending && <p className="py-10 text-sm text-muted">{s.loading}</p>}
 
         {rates.isError && (
-          <p className="py-10 text-sm">
-            {s.errorRates}{" "}
-            <button type="button" onClick={() => rates.refetch()} className="text-accent underline-offset-2 hover:underline">
-              {s.retry}
-            </button>
-          </p>
+          <div className="py-10 text-sm">
+            <p>
+              {s.errorRates}{" "}
+              <button type="button" onClick={() => rates.refetch()} className="text-accent underline-offset-2 hover:underline">
+                {s.retry}
+              </button>
+            </p>
+            <p className="mt-1 text-xs text-muted">{rates.error.message}</p>
+          </div>
         )}
 
         {selected && (

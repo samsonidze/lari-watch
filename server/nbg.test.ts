@@ -37,7 +37,7 @@ function fakeNbg(days: Record<string, NbgDay>, log: string[] = []): FetchLike {
     return {
       ok: Boolean(hit),
       status: hit ? 200 : 500,
-      json: async () => (hit ? [hit] : { error: "nope" }),
+      text: async () => JSON.stringify(hit ? [hit] : { error: "nope" }),
     };
   };
 }
