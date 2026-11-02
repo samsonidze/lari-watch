@@ -8,8 +8,8 @@ import {
   ratesUrl,
   type FetchLike,
   type NbgDay,
-} from "./nbg";
-import { handleHistory, handleRates } from "./handlers";
+} from "./nbg.js";
+import { handleHistory, handleRates } from "./handlers.js";
 
 function day(date: string, rates: Record<string, [rate: number, quantity: number]>): NbgDay {
   return {

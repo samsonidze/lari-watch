@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handleRates } from "../server/handlers";
+import { handleRates } from "../server/handlers.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const query = Object.fromEntries(

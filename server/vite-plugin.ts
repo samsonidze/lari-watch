@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import { handleHistory, handleRates, type HandlerResult } from "./handlers";
+import { handleHistory, handleRates, type HandlerResult } from "./handlers.js";
 
 /** Serves /api/* during `vite dev` with the same handlers Vercel runs in production. */
 export function nbgDevApi(): Plugin {

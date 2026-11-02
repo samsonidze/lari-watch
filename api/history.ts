@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handleHistory } from "../server/handlers";
+import { handleHistory } from "../server/handlers.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const query = Object.fromEntries(

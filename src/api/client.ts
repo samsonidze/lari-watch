@@ -18,8 +18,12 @@ async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
     try {
-      const body = (await res.json()) as { error?: string };
-      if (body.error) message = body.error;
+      const body = (await res.json()) as { error?: unknown };
+      if (typeof body.error === "string") message = body.error;
+      else if (body.error && typeof body.error === "object") {
+        const e = body.error as { code?: string; message?: string };
+        message = [e.code, e.message].filter(Boolean).join(": ") || JSON.stringify(body.error);
+      }
     } catch {
       // keep the generic message
     }

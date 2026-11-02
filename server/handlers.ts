@@ -9,7 +9,7 @@ import {
   NbgError,
   tbilisiDate,
   type FetchLike,
-} from "./nbg";
+} from "./nbg.js";
 
 export interface HandlerResult {
   status: number;
